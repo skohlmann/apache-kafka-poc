@@ -18,44 +18,46 @@
 package de.speexx.poc.kafka.consumer;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.Properties;
+import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
+import org.apache.kafka.common.PartitionInfo;
 import org.apache.kafka.common.serialization.StringDeserializer;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class ConsumerMain {
 
-    private static final Logger LOG = LoggerFactory.getLogger("CONSUMER");
-    
     public static final String TOPIC = "firsttopic";
     public static final String KAFKA_IP = "192.168.5.200";
     public static final String KAFKA_PORT = "9092";
     
     public static void main(final String... args) throws Exception {
         
-        final Properties props = new Properties();
-        props.put("bootstrap.servers", KAFKA_IP + ":" + KAFKA_PORT);
-        props.put("acks", "all");
-        props.put("retries", 0);
-        props.put("batch.size", 16384);
-        props.put("linger.ms", 1);
-        props.put("buffer.memory", 33554432);
-        props.put("key.deserializer", StringDeserializer.class.getName());
-        props.put("value.deserializer", StringDeserializer.class.getName());
+        final Properties props = consumerConfiguration();
 
         try (KafkaConsumer<String, String> consumer = new KafkaConsumer<>(props)) {
             System.out.format("Consumer %s created.%n", consumer);
+            
+            consumer.partitionsFor(TOPIC).forEach(info -> System.out.format("PartitionInfo: %s%n", info));
+            
             consumer.subscribe(Arrays.asList(TOPIC));
             System.out.format("Start polling.%n");
-            final ConsumerRecords<String, String> records = consumer.poll(100);
+            final ConsumerRecords<String, String> records = consumer.poll(0L);
             System.out.format("ConsumerRecords with %d entries.%n", records.count());
             for (ConsumerRecord<String, String> record : records) {
                 System.out.format("From topic: %s: Key: %s with value: %s%n", record.topic(), record.key(), record.value());
             }
             consumer.commitSync();
         }
+    }
+
+    static Properties consumerConfiguration() {
+        final Properties props = new Properties();
+        props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, KAFKA_IP + ":" + KAFKA_PORT);
+        props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
+        props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
+        return props;
     }
 }
