@@ -18,13 +18,12 @@
 package de.speexx.poc.kafka.consumer;
 
 import java.util.Arrays;
-import java.util.List;
 import java.util.Properties;
+import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
-import org.apache.kafka.common.PartitionInfo;
 import org.apache.kafka.common.serialization.StringDeserializer;
 
 public class ConsumerMain {
@@ -38,7 +37,7 @@ public class ConsumerMain {
         
         final Properties props = consumerConfiguration();
 
-        try (KafkaConsumer<String, String> consumer = new KafkaConsumer<>(props)) {
+        try (final Consumer<String, String> consumer = new KafkaConsumer<>(props)) {
             System.out.format("Consumer %s created.%n", consumer);
             
             consumer.partitionsFor(TOPIC).forEach(info -> System.out.format("PartitionInfo: %s%n", info));
@@ -49,6 +48,7 @@ public class ConsumerMain {
             System.out.format("ConsumerRecords with %d entries.%n", records.count());
             for (ConsumerRecord<String, String> record : records) {
                 System.out.format("From topic: %s: Key: %s with value: %s%n", record.topic(), record.key(), record.value());
+                System.out.format("     Meta - Offset: %d - Partition: %d - Timestamp: %d%n", record.offset(), record.partition(), record.timestamp());
             }
             consumer.commitSync();
         }
