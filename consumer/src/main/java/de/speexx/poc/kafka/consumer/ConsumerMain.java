@@ -32,6 +32,7 @@ public class ConsumerMain {
     public static final String TOPIC = "firsttopic";
     public static final String KAFKA_IP = "192.168.5.200";
     public static final String KAFKA_PORT = "9092";
+    public static final String GROUP_ID = "poc";
     
     public static void main(final String... args) throws Exception {
         
@@ -44,7 +45,7 @@ public class ConsumerMain {
             
             consumer.subscribe(Arrays.asList(TOPIC));
             System.out.format("Start polling.%n");
-            final ConsumerRecords<String, String> records = consumer.poll(0L);
+            final ConsumerRecords<String, String> records = consumer.poll(1000L);
             System.out.format("ConsumerRecords with %d entries.%n", records.count());
             for (ConsumerRecord<String, String> record : records) {
                 System.out.format("From topic: %s: Key: %s with value: %s%n", record.topic(), record.key(), record.value());
@@ -58,6 +59,7 @@ public class ConsumerMain {
         props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, KAFKA_IP + ":" + KAFKA_PORT);
         props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
         props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
+        props.put(ConsumerConfig.GROUP_ID_CONFIG, GROUP_ID);
         return props;
     }
 }
